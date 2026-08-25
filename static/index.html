@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrustPay AI — Agentic Risk Decision Engine</title>
+    <meta name="description" content="Multi-agent risk-decision system using LLM-based extraction and reasoning with deterministic policy guardrails.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js for Evaluation Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-logo">
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                </div>
+                <div class="brand-name">
+                    <h1>TrustPay AI</h1>
+                    <span>Agentic Risk Engine</span>
+                </div>
+            </div>
+            
+            <nav class="nav-links">
+                <button class="nav-link active" data-tab="demo-mode" id="nav-demo-mode">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    Demo Mode
+                </button>
+                <button class="nav-link" data-tab="sandbox" id="nav-sandbox">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></nav-sandbox></svg>
+                    Custom Sandbox
+                </button>
+                <button class="nav-link" data-tab="history" id="nav-history">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    Transaction History
+                </button>
+                <button class="nav-link" data-tab="eval-dashboard" id="nav-eval-dashboard">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    Evaluation Metrics
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="status-indicator">
+                    <span class="pulse-dot"></span>
+                    <span>System Online</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Dashboard Area -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-title">
+                    <h2 id="current-tab-title">Demo Mode</h2>
+                    <p id="current-tab-desc">Run standard pre-configured scenarios to see the risk agents in action.</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" id="btn-refresh-data">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
+                        Refresh History
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-body">
+                <!-- ================= DEMO MODE TAB ================= -->
+                <section class="tab-pane active" id="demo-mode">
+                    <div class="section-grid">
+                        <div class="card card-wide">
+                            <div class="card-header">
+                                <h3>Select a Demo Scenario</h3>
+                                <span class="badge badge-info">5 Scenarios Available</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="scenarios-grid" id="scenarios-list">
+                                    <!-- Dynamic Scenarios List -->
+                                    <div class="loading-spinner">Loading scenarios...</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Active Demo Run Panel -->
+                        <div class="card card-wide hidden" id="demo-run-panel">
+                            <div class="card-header">
+                                <div class="header-info">
+                                    <h3 id="demo-run-title">Safe Payment</h3>
+                                    <p id="demo-run-desc">Description</p>
+                                </div>
+                                <div class="header-status">
+                                    <span class="badge" id="demo-run-status-badge">READY</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="demo-flow-steps">
+                                    <!-- Step 1: Intent Extraction -->
+                                    <div class="flow-step" id="step-intent">
+                                        <div class="step-icon">1</div>
+                                        <div class="step-details">
+                                            <h4>Step 1: User Intent (Natural Language)</h4>
+                                            <p class="raw-intent-text" id="demo-raw-intent">"Buy headphones under ₹5,000"</p>
+                                            <div class="step-output hidden" id="demo-intent-output">
+                                                <h5>Extracted Structured Constraints:</h5>
+                                                <pre class="json-code" id="demo-intent-json">{}</pre>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Step 2: Payment Proposal -->
+                                    <div class="flow-step" id="step-proposal">
+                                        <div class="step-icon">2</div>
+                                        <div class="step-details">
+                                            <h4>Step 2: Simulated AI Commerce Agent Proposal</h4>
+                                            <p class="description-sub text-muted">The merchant site returns the actual payment total.</p>
+                                            <div class="step-output hidden" id="demo-proposal-output">
+                                                <div class="proposal-details">
+                                                    <span class="proposal-title" id="demo-prop-title">boAt Rockerz 450</span>
+                                                    <span class="proposal-merchant" id="demo-prop-merchant">Merchant: SoundBazaar</span>
+                                                    <span class="proposal-amount" id="demo-prop-amount">₹1,792</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Step 3: Multi-Agent Risk Analysis -->
+                                    <div class="flow-step" id="step-risk">
+                                        <div class="step-icon">3</div>
+                                        <div class="step-details">
+                                            <h4>Step 3: TrustPay AI Multi-Agent Risk Verification</h4>
+                                            <div class="step-output hidden" id="demo-risk-output">
+                                                <div class="agents-grid">
+                                                    <!-- Agent Cards -->
+                                                    <div class="agent-card" id="agent-intent-card">
+                                                        <div class="agent-card-header">
+                                                            <span>Intent Matcher</span>
+                                                            <span class="score" id="agent-intent-score">0/100</span>
+                                                        </div>
+                                                        <div class="agent-card-body">
+                                                            <p id="agent-intent-desc">Verifying purchase conditions...</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="agent-card" id="agent-scam-card">
+                                                        <div class="agent-card-header">
+                                                            <span>Context Scan</span>
+                                                            <span class="score" id="agent-scam-score">0% scam</span>
+                                                        </div>
+                                                        <div class="agent-card-body">
+                                                            <p id="agent-scam-desc">Scanning text for emergency or threats...</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="agent-card" id="agent-behavior-card">
+                                                        <div class="agent-card-header">
+                                                            <span>Behavior Anomaly</span>
+                                                            <span class="score" id="agent-behavior-score">0/100</span>
+                                                        </div>
+                                                        <div class="agent-card-body">
+                                                            <p id="agent-behavior-desc">Comparing with purchase patterns...</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Step 4: Decision & Decision Explainability -->
+                                    <div class="flow-step" id="step-decision">
+                                        <div class="step-icon">4</div>
+                                        <div class="step-details">
+                                            <h4>Step 4: Decision Agent Output</h4>
+                                            <div class="step-output hidden" id="demo-decision-output">
+                                                <div class="decision-result-card" id="demo-decision-card">
+                                                    <div class="decision-heading">
+                                                        <span class="decision-title" id="demo-final-decision">ALLOW</span>
+                                                        <span class="decision-score" id="demo-final-score">Risk Score: 12/100</span>
+                                                    </div>
+                                                    <div class="decision-reasons">
+                                                        <ul id="demo-reasons-list">
+                                                            <li>Valid transaction context.</li>
+                                                        </ul>
+                                                    </div>
+                                                    <div class="override-flag hidden" id="demo-override-badge">
+                                                        * Override Rule Applied
+                                                    </div>
+                                                </div>
+
+                                                <!-- Human-in-the-loop confirmation -->
+                                                <div class="hitl-container hidden" id="demo-hitl-box">
+                                                    <div class="hitl-alert">
+                                                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                                                        <span>Requires Human Confirmation: Do you authorize this transaction?</span>
+                                                    </div>
+                                                    <div class="hitl-actions">
+                                                        <button class="btn btn-success" id="btn-hitl-approve">Approve Transaction</button>
+                                                        <button class="btn btn-danger" id="btn-hitl-reject">Reject/Cancel</button>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Execution and verification buttons -->
+                                                <div class="post-actions" id="demo-post-actions">
+                                                    <button class="btn btn-primary" id="btn-demo-execute">Execute Mock Payment</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Step 5: Post-Payment Verification -->
+                                    <div class="flow-step" id="step-postpayment">
+                                        <div class="step-icon">5</div>
+                                        <div class="step-details">
+                                            <h4>Step 5: Post-Payment Verification</h4>
+                                            <div class="step-output hidden" id="demo-postpayment-output">
+                                                <div class="post-payment-status-card" id="demo-postpayment-card">
+                                                    <div class="status-row">
+                                                        <span class="label">Mock payment ID:</span>
+                                                        <span class="val" id="demo-pay-id">pay_1283928139</span>
+                                                    </div>
+                                                    <div class="status-row">
+                                                        <span class="label">Verification Status:</span>
+                                                        <span class="val font-bold text-success" id="demo-verify-status">VERIFIED</span>
+                                                    </div>
+                                                    <div class="checks-list mt-3">
+                                                        <h5>Matching Parameters Re-Check:</h5>
+                                                        <ul id="demo-verify-checks">
+                                                            <li>✓ Merchant Match: SoundBazaar</li>
+                                                            <li>✓ Amount Match: ₹1,792</li>
+                                                            <li>✓ Product Match: boAt Rockerz 450</li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= CUSTOM SANDBOX TAB ================= -->
+                <section class="tab-pane" id="sandbox">
+                    <div class="section-grid-half">
+                        <!-- Left Side: User Input Panel -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Custom Transaction Request</h3>
+                                <p class="card-subtitle">Input instructions and optional chat/invoice context to test the risk logic.</p>
+                            </div>
+                            <div class="card-body">
+                                <form id="sandbox-form">
+                                    <div class="form-group">
+                                        <label for="sandbox-user-input">User intent (Natural Language instructions)</label>
+                                        <textarea id="sandbox-user-input" placeholder="e.g., Buy a laptop for college under ₹60,000. It must be new, not refurbished." required></textarea>
+                                        <span class="help-text">What did the user ask the shopping agent to do?</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="sandbox-context-message">Accompanying Message/Context (Optional Scam Signal)</label>
+                                        <textarea id="sandbox-context-message" placeholder="e.g., EMERGENCY: Immediate payment needed to keep service active. Urgent transfer to account..."></textarea>
+                                        <span class="help-text">Threats, urgencies, messages from external parties that could trigger scam warning.</span>
+                                    </div>
+                                    <div class="form-group-row">
+                                        <button type="submit" class="btn btn-primary btn-block" id="btn-sandbox-submit">
+                                            Run Risk Analysis
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Right Side: Live Workflow Execution -->
+                        <div class="card" id="sandbox-result-panel">
+                            <div class="card-header">
+                                <h3>Pipeline Status</h3>
+                                <span class="badge" id="sandbox-flow-badge">IDLE</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="sandbox-idle-message" id="sandbox-idle-view">
+                                    <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" class="text-muted"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+                                    <p>Submit a transaction request on the left to trigger the interactive multi-agent risk assessment flow.</p>
+                                </div>
+
+                                <div class="sandbox-active-flow hidden" id="sandbox-flow-view">
+                                    <div class="interactive-steps-container">
+                                        <!-- Interactive Step Nodes -->
+                                        <div class="interactive-node" id="node-intent">
+                                            <div class="node-bullet"></div>
+                                            <div class="node-content">
+                                                <h4>1. Extraction Agent</h4>
+                                                <div class="node-body hidden">
+                                                    <p class="json-code-small" id="sandbox-json-intent">Extracted constraints...</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="interactive-node" id="node-proposal">
+                                            <div class="node-bullet"></div>
+                                            <div class="node-content">
+                                                <h4>2. Commerce Agent Proposal</h4>
+                                                <div class="node-body hidden">
+                                                    <div class="mini-prop-card">
+                                                        <strong id="sb-prop-name">Product</strong>
+                                                        <span id="sb-prop-details">Merchant, Price</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="interactive-node" id="node-risk">
+                                            <div class="node-bullet"></div>
+                                            <div class="node-content">
+                                                <h4>3. Threat & Policy Analysis</h4>
+                                                <div class="node-body hidden">
+                                                    <div class="mini-agent-scores">
+                                                        <div class="mini-row"><span>Intent Mismatch:</span> <strong id="sb-score-intent">0/100</strong></div>
+                                                        <div class="mini-row"><span>Scam probability:</span> <strong id="sb-score-scam">0%</strong></div>
+                                                        <div class="mini-row"><span>Behavior anomaly:</span> <strong id="sb-score-behavior">0/100</strong></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="interactive-node" id="node-decision">
+                                            <div class="node-bullet"></div>
+                                            <div class="node-content">
+                                                <h4>4. Core Decision & Overrides</h4>
+                                                <div class="node-body hidden">
+                                                    <div class="decision-summary-card" id="sb-decision-card">
+                                                        <h4 id="sb-final-decision">ALLOW</h4>
+                                                        <p id="sb-decision-reasons">Reasons list</p>
+                                                    </div>
+
+                                                    <div class="hitl-container hidden" id="sb-hitl-box">
+                                                        <div class="hitl-actions">
+                                                            <button class="btn btn-success btn-sm" id="btn-sb-approve">Approve</button>
+                                                            <button class="btn btn-danger btn-sm" id="btn-sb-reject">Reject</button>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="post-actions" id="sb-post-actions">
+                                                        <button class="btn btn-primary btn-sm" id="btn-sb-execute">Execute Mock Payment</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="interactive-node" id="node-verify">
+                                            <div class="node-bullet"></div>
+                                            <div class="node-content">
+                                                <h4>5. Post-Payment Reconciliation</h4>
+                                                <div class="node-body hidden">
+                                                    <div class="post-verify-status-small" id="sb-verify-card">
+                                                        <strong id="sb-verify-status-label">VERIFIED</strong>
+                                                        <p id="sb-verify-details">Matching checks...</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= TRANSACTION HISTORY TAB ================= -->
+                <section class="tab-pane" id="history">
+                    <div class="card card-wide">
+                        <div class="card-header">
+                            <h3>Executed Transactions Log</h3>
+                            <p class="card-subtitle">All sandbox and demo executions are recorded in the local SQLite database.</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table class="data-table" id="history-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Timestamp</th>
+                                            <th>User Input</th>
+                                            <th>Product / Merchant</th>
+                                            <th>Amount</th>
+                                            <th>Decision</th>
+                                            <th>Risk Score</th>
+                                            <th>Payment Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="history-tbody">
+                                        <tr>
+                                            <td colspan="8" class="text-center">No transactions recorded yet. Run a scenario or custom input first!</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= EVALUATION DASHBOARD TAB ================= -->
+                <section class="tab-pane" id="eval-dashboard">
+                    <!-- Metrics Summary Cards -->
+                    <div class="metrics-summary-grid">
+                        <div class="metric-card">
+                            <div class="metric-label">Precision</div>
+                            <div class="metric-value" id="eval-precision">0.00%</div>
+                            <div class="metric-sub">True Positive Rate (No False Positives)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Recall</div>
+                            <div class="metric-value" id="eval-recall">0.00%</div>
+                            <div class="metric-sub">False Negatives Prevented (Coverage)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">F1-Score</div>
+                            <div class="metric-value" id="eval-f1">0.00%</div>
+                            <div class="metric-sub">Harmonic Mean of Precision/Recall</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Accuracy</div>
+                            <div class="metric-value" id="eval-accuracy">0.00%</div>
+                            <div class="metric-sub">Correct Decisions (Overall Set)</div>
+                        </div>
+                    </div>
+
+                    <div class="section-grid-half">
+                        <!-- Left Panel: Confusion Matrix & Metrics Explanation -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Confusion Matrix</h3>
+                                <p class="card-subtitle">Performance over the held-out test dataset (~100-200 synthetic scenarios)</p>
+                            </div>
+                            <div class="card-body flex-center">
+                                <div class="confusion-matrix-grid">
+                                    <div class="matrix-cell label-cell"></div>
+                                    <div class="matrix-cell label-cell header-cell">Actual Risky</div>
+                                    <div class="matrix-cell label-cell header-cell">Actual Safe</div>
+
+                                    <div class="matrix-cell label-cell header-cell side-label">Predicted Risky</div>
+                                    <div class="matrix-cell data-cell tp-cell" id="cell-tp">
+                                        <span class="count">0</span>
+                                        <span class="label">True Positive</span>
+                                    </div>
+                                    <div class="matrix-cell data-cell fp-cell" id="cell-fp">
+                                        <span class="count">0</span>
+                                        <span class="label">False Positive</span>
+                                    </div>
+
+                                    <div class="matrix-cell label-cell header-cell side-label">Predicted Safe</div>
+                                    <div class="matrix-cell data-cell fn-cell" id="cell-fn">
+                                        <span class="count">0</span>
+                                        <span class="label">False Negative</span>
+                                    </div>
+                                    <div class="matrix-cell data-cell tn-cell" id="cell-tn">
+                                        <span class="count">0</span>
+                                        <span class="label">True Negative</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: False Positive Cost Matrix -->
+                        <div class="card">
+                            <div class="card-header border-orange">
+                                <h3>False-Positive Cost (Honest Report)</h3>
+                                <p class="card-subtitle text-orange">User friction of blocking safe transactions (Explicitly required by Razorpay brief)</p>
+                            </div>
+                            <div class="card-body">
+                                <div class="fp-cost-stats">
+                                    <div class="cost-score-card">
+                                        <span>Total False Positives:</span>
+                                        <strong id="eval-fp-count">0</strong>
+                                    </div>
+                                    <div class="cost-description-card">
+                                        <h5>Real-World Cost Implications:</h5>
+                                        <p>Every false positive represents a legitimate checkout flow interrupted by a false alarm. In commerce apps, this causes <strong>friction, drop-offs, customer support tickets, and direct loss of merchant revenue</strong>.</p>
+                                    </div>
+                                </div>
+                                <div class="cost-examples-list" id="eval-fp-examples">
+                                    <!-- Dynamic FP cost examples -->
+                                    <p class="text-muted text-center py-4">No false positives in this run.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Honest Failures & Misclassification Cases -->
+                    <div class="card card-wide mt-4">
+                        <div class="card-header border-red">
+                            <h3>Honest Misclassification Analysis</h3>
+                            <p class="card-subtitle text-red">Analyzing where and why our agentic model fails. Cherry-picking proves nothing.</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="misclassifications-list" id="eval-misclassifications">
+                                <!-- Dynamic Misclassifications -->
+                                <p class="text-muted text-center py-4">Loading misclassifications data...</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for Detailed Decision Breakdown -->
+    <div class="modal-backdrop hidden" id="detail-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Transaction Detailed Audit Trail</h3>
+                <button class="modal-close-btn" id="btn-close-modal">×</button>
+            </div>
+            <div class="modal-body" id="modal-content">
+                <!-- Dynamic Content goes here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
